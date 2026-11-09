@@ -1,8 +1,11 @@
 # Backend Foundation Assessment
 
-**Project:** TintVerify-Gambia  
-**Prepared by:** Developer 2  
-**Date:** 9 November 2026  
+**Project:** TintVerify-Gambia
+
+**Prepared by:** Developer 2
+
+**Date:** 9 November 2026
+
 **Scope:** Sprint 0 assessment and Sprint 1 backend readiness
 
 ## Outcome
@@ -31,13 +34,17 @@ The public website uses Next.js 16.4.5, React 19.3.0, TypeScript 5, Tailwind CSS
 
 The registration, login, password-reset, and application wizard screens are local demonstrations. They explicitly state that they do not save or send data. This is correct for the current frontend milestone, but it means no live backend contract is implemented yet.
 
+### Responsibility Alignment
+
+The Frontend Developer owns the public website, police dashboard, police mobile application, their interfaces, and frontend integration. The Backend Developer owns backend services and APIs, the database and Prisma implementation, authentication and authorisation, business logic, document storage, QR-verification services, audit logging, and reporting APIs. Architecture decisions, API contracts, testing, integration, and documentation remain shared responsibilities. The absence of the police dashboard and mobile applications from the current frontend branch is an implementation-status finding; it does not change ownership.
+
 ### Required Public-Web Contract
 
 When Sprint 2 and Sprint 3 integration begins, the backend contract must cover at least:
 
 - applicant account types: `individual`, `company`, and `representative`;
 - applicant identity/contact fields shown by the frontend, including name, email, phone, address, date of birth where applicable, driving-licence number, company details, owner details, and representative details;
-- one or more vehicles per application, with registration number, make, model, and optional colour;
+- the applicant and vehicle fields displayed by the current frontend, including registration number, make, model, and optional colour; the relationship between an application and multiple company vehicles requires joint agreement before it becomes an API or database contract;
 - document uploads for licence, company registration, representative identification, authorisation letter, vehicle registration, and four vehicle photographs;
 - `POST /api/v1/auth/register`, login/session endpoints, and account/profile retrieval once authentication begins;
 - application creation, upload, update, submission, and timeline endpoints once Sprint 3 begins;
@@ -49,10 +56,12 @@ The frontend currently collects representative owner data that is more detailed 
 
 The documentation agrees on a shared backend, REST/JSON API, `/api/v1` prefix, PostgreSQL, Prisma, TypeScript, and OpenAPI/Swagger. It also consistently treats the product as an unofficial prototype using fictional data.
 
-There are two material documentation gaps:
+There are four material documentation conflicts or gaps:
 
 1. `docs/API-CONTRACT.md` specifies `/api/v1`, while the architecture document's route examples use `/api/...`. The API contract is the more specific integration source, but the final prefix should be jointly confirmed and architecture examples updated.
 2. `docs/DATABASE.md` is missing despite being listed in the documentation index and repository design. The architecture contains a database outline, but no standalone canonical database document exists.
+3. `docs/API-CONTRACT.md` assigns the development API base URL to `http://localhost:3000/api/v1`, while the public-web package runs `next dev` on port 3000 by default. The two local development servers cannot both use that port. The team must agree the API port and environment-variable contract before integration.
+4. `docs/ARCHITECTURE.md` models `Applications` with a singular `vehicle_id`, while the current public-web company flow collects multiple vehicles in one application wizard and the SRS says companies can submit applications for multiple vehicles. The documents do not establish whether this means one application per vehicle or one company application containing multiple vehicles.
 
 The authentication/session mechanism, staff two-factor implementation, password-reset delivery service, document-storage provider, malware-scanning mechanism, and approved production domains are intentionally undecided. They must remain decisions rather than implementation assumptions.
 
@@ -91,7 +100,7 @@ The missing `docs/DATABASE.md` should make the architecture outline actionable w
 
 - Users and applicant profiles: one applicant user to many applications.
 - Staff users, roles, permissions, and staff-role assignments: many-to-many staff role assignment, with permissions attached to roles.
-- Vehicles and applications: one vehicle can have historical applications; every application belongs to an applicant and a vehicle.
+- Vehicles and applications: one vehicle can have historical applications. The application-to-vehicle cardinality is unresolved: the documented architecture uses a singular `vehicle_id`, while the current company frontend collects multiple vehicles in one application wizard. The agreed database document must state whether each vehicle creates a separate application or whether an application-to-vehicle relation is required.
 - Application documents, reviews, additional-information requests, approval decisions, and payment verification records: each belongs to an application; applications retain their history.
 - Permits: one successfully issued application produces one permit; a permit has one unique QR verification identity and can have revocation, renewal, or replacement history.
 - Notifications, audit logs, and verification logs: retain event history and actor references.
@@ -142,14 +151,16 @@ This supports the Sprint 1 foundation while leaving later domain modules for the
 
 ## Decisions Requiring Both Developers' Approval
 
-1. Confirm the proposed stack: NestJS, TypeScript, PostgreSQL, Prisma, REST, OpenAPI/Swagger, plus the frontend's npm/Next.js workspace approach.
-2. Confirm the monorepo/package-manager structure and how `apps/public-web` moves into or consumes shared packages.
+1. Confirm the proposed stack: NestJS, TypeScript, PostgreSQL, Prisma, REST, OpenAPI/Swagger, and the frontend's npm/Next.js setup.
+2. Confirm the monorepo/package-manager structure and how `apps/public-web` consumes shared packages without modifying Developer 1's branch.
 3. Confirm `/api/v1` as the canonical prefix and align the architecture examples.
 4. Approve the initial database schema boundaries and the shared application-status enum.
 5. Agree on session/token strategy, permitted client origins, and Swagger documentation route before authentication or deployment work.
 6. Decide the handling of the frontend's representative-owner email field.
 7. Agree the document-storage and malware-scanning approach before document uploads are implemented.
+8. Decide the local API port and environment-variable contract for the public website and API.
+9. Decide whether companies submit one application per vehicle or one application containing multiple vehicles, then align the frontend contract, architecture, and database design.
 
 ## Recommended Next Action
 
-Record a joint decision for the seven items above. Once the stack and repository arrangement are agreed, Developer 2 can initialise only the Sprint 1 backend foundation on `feature/backend-foundation`.
+Complete the outstanding Sprint 0 shared task: both developers must record agreement on the proposed technology stack and repository structure. Once that is complete, Developer 2's first Sprint 1 task is to create the backend project and then configure PostgreSQL, Prisma, the initial database schema, API documentation, health check, and development environment variables on `feature/backend-foundation`.
